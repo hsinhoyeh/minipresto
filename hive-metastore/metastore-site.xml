@@ -25,7 +25,7 @@
 </property>
 <property>
 	<name>metastore.warehouse.dir</name>
-	<value>gs://footprint-presto-demo/warehouse/</value>
+	<value>gs://<gcs-bucket>/</value>
 </property>
 <property>
 	<name>metastore.thrift.port</name>
