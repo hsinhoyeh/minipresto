@@ -32,7 +32,3 @@ RUN curl -L https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java
 	| tar xvz -C /opt/ \
 	&& ln -s /opt/mysql-connector-java-5.1.47/mysql-connector-java-5.1.47.jar /opt/hadoop/share/hadoop/common/lib/ \
 	&& ln -s /opt/mysql-connector-java-5.1.47/mysql-connector-java-5.1.47.jar /opt/hive-metastore/lib/ 
-
-# add service account
-ADD ./service-account.json /tmp/service-account.json
-ENV GOOGLE_APPLICATION_CREDENTIALS="/tmp/service-account.json"

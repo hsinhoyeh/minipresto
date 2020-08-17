@@ -23,7 +23,7 @@
   </property>
   <property>
     <name>google.cloud.auth.service.account.json.keyfile</name>
-    <value>/tmp/service-account.json</value>
+    <value>/opt/hive-metastore/conf/service-account.json</value>
     <description>
       The JSON key file of the service account used for GCS
       access when google.cloud.auth.service.account.enable is true.

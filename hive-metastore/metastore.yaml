@@ -31,6 +31,9 @@ spec:
         ports:
         - containerPort: 9083
         volumeMounts:
+        - name: serviceaccount-vol
+          mountPath: /opt/hive-metastore/conf/service-account.json
+          subPath: service-account.json
         - name: metastore-cfg-vol
           mountPath: /opt/hive-metastore/conf/metastore-site.xml
           subPath: metastore-site.xml
@@ -47,3 +50,6 @@ spec:
         - name: metastore-cfg-vol
           configMap:
             name: metastore-cfg
+        - name: serviceaccount-vol
+          configMap:
+            name: serviceaccount
