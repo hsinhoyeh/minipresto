@@ -1,0 +1,118 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: presto
+  namespace: presto
+spec:
+  ports:
+  - port: 8080
+  selector:
+    app: presto-coordinator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: presto-coordinator
+  namespace: presto
+spec:
+  selector:
+    matchLabels:
+      app: presto-coordinator
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: presto-coordinator
+    spec:
+      containers:
+      - name: presto-coordinator
+        image: footprintai/presto
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: presto-cfg-vol
+          mountPath: opt/presto-server/etc/config.properties
+          subPath: config.properties.coordinator
+        - name: presto-cfg-vol
+          mountPath: /opt/presto-server/etc/node.properties.template
+          subPath: node.properties.template
+        - name: presto-cfg-vol
+          mountPath: /opt/presto-server/etc/catalog/hive.properties.template
+          subPath: hive.properties.template
+        command: ['/opt/autoconfig_and_launch.sh']
+        resources:
+          requests:
+            memory: "20G"
+        imagePullPolicy: Always
+      volumes:
+        - name: presto-cfg-vol
+          configMap:
+            name: presto-cfg
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: presto-worker
+  namespace: presto
+spec:
+  serviceName: presto-worker 
+  replicas: 2
+  selector:
+    matchLabels:
+      app: presto-worker
+  template:
+    metadata:
+      labels:
+        app: presto-worker
+    spec:
+      containers:
+      - name: presto-worker
+        image: footprintai/presto
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: presto-cfg-vol
+          mountPath: opt/presto-server/etc/config.properties
+          subPath: config.properties.worker
+        - name: presto-cfg-vol
+          mountPath: /opt/presto-server/etc/node.properties.template
+          subPath: node.properties.template
+        - name: presto-cfg-vol
+          mountPath: /opt/presto-server/etc/catalog/hive.properties.template
+          subPath: hive.properties.template
+        - name: presto-tmp-data
+          mountPath: /tmp
+        command: ['/opt/autoconfig_and_launch.sh']
+        resources:
+          requests:
+            memory: "20G"
+        imagePullPolicy: Always
+      volumes:
+        - name: presto-cfg-vol
+          configMap:
+            name: presto-cfg
+  volumeClaimTemplates:
+  - metadata:
+      name: presto-tmp-data
+    spec:
+      storageClassName: standard
+      accessModes:
+      - ReadWriteMany
+      resources:
+        requests:
+          storage: 100Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: presto-cli
+  namespace: presto
+spec:
+  containers:
+  - name: presto-cli
+    image: footprintai/presto-cli
+    command: ["tail", "-f", "/dev/null"]
+    imagePullPolicy: Always
+  restartPolicy: Always

@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: maria-pv-claim
+  namespace: presto
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metastore-db
+  namespace: presto
+spec:
+  ports:
+  - port: 13306
+    targetPort: 3306
+  selector:
+    app: mysql
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: presto
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mariadb
+        image: "mariadb/server:latest"
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: mypass
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mariadb-for-hive
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mariadb-for-hive
+        persistentVolumeClaim:
+          claimName: maria-pv-claim
